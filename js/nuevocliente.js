@@ -32,15 +32,14 @@ function validar(ev){
         }
     }
 
-    if(campoForm.id === "telefono"){
-        if (!validarTlf(campoForm.value)){
+    if(campoForm.id === "telefono" && !validarTlf(campoForm.value)){
             mostrarError("Teléfono inválido",campoForm.parentElement)
             return;
-        }
     }
 
     if(campoForm.value === ""){
         mostrarError("El campo no puede estar vacío",campoForm.parentElement)
+        return;
     }
 
     limpiarAlerta(campoForm.parentElement)
@@ -54,6 +53,7 @@ function validar(ev){
 }
 
 function mostrarError(mensaje,campoForm){
+    limpiarAlerta(campoForm)
     const contenedor = document.createElement("div")
     contenedor.classList.add("bg-red-500")
 
@@ -70,7 +70,7 @@ function mostrarError(mensaje,campoForm){
 
 function limpiarAlerta (referencia) {
     // Comprueba si ya existe una alerta
-    const alerta = referencia.querySelector('.bg-red-600')
+    const alerta = referencia.querySelector('.bg-red-500')
     if (alerta) {
         alerta.remove()
     }
