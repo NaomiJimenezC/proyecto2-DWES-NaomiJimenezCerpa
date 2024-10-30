@@ -1,9 +1,13 @@
+//
+let db
+
 //ElementosDOM
 const nombreCliente = document.querySelector("#nombre")
 const correCliente = document.querySelector("#email")
 const telefono = document.querySelector("#telefono")
 const empresa = document.querySelector("#empresa")
 const botonSubmit = document.querySelector("#formulario input[type=submit]")
+const formulario = document.querySelector("#formulario")
 
 //listeners
 
@@ -19,8 +23,15 @@ nombreCliente.addEventListener("blur", validar)
 correCliente.addEventListener("blur",validar)
 telefono.addEventListener("blur",validar)
 empresa.addEventListener("blur",validar)
+formulario.addEventListener("submit", enviarDatosClientes)
+document.addEventListener('DOMContentLoaded',inicializarDB)
 
 //funciones
+
+
+function enviarDatosClientes(ev){
+    guardarDatosCliente()
+}
 
 function validar(ev){
     const campoForm = ev.target
@@ -95,3 +106,79 @@ function validarTlf(telefono){
     const regex = RegExp("^[0-9]{9}$")
     return regex.test(telefono)
 }
+
+//indexedDB
+
+function inicializarDB(){
+    const request = indexedDB.open("Clientes");
+
+    request.onupgradeneeded = (ev)=> {
+        db = ev.target.result;
+        if (!db.objectStoreNames.contains("clientes")) {
+            db.createObjectStore("clientes", {keyPath: "email"});
+        }
+    }
+
+    request.onerror = (ev) => {
+        mostrarError("Algo sucedió con la base de datos",ev.target)
+    }
+    request.onsuccess = (ev)=>{
+        db = ev.target.result;
+    }
+}
+
+function actualizarCliente(datosNuevos){
+    const transaccion = db.transaction("clientes","readwrite")
+    const clientesActuales = transaccion.objectStore("clientes")
+    const request = clientesActuales.put(datosNuevos)
+
+
+}
+
+
+function guardarDatosCliente(){
+    const transaccion = db.transaction("clientes","readwrite")
+    // db.createObjectStore("clientes", {keyPath: "email"});
+    const clientesActuales = transaccion.objectStore("clientes")
+    const request = clientesActuales.add(datosCliente)
+
+    request.onsuccess = function() { // (4)
+        console.log("Cliente agregado", request.result);
+    };
+
+    request.onerror = (ev)=> {
+        console.log(ev.target.error.name)
+        if (ev.target.error.name === "ConstraintError"){
+            console.log("Actualizando datos del cliente...")
+            actualizarCliente(datosCliente)
+        } else {
+            console.log("wao error inesperado")
+        }
+    };
+}
+
+function borrarCliente(idCliente){
+    const transaccion = db.transaction("clientes","readwrite")
+    const clienteActuales = transaccion.objectStore("clientes")
+    const request = clienteActuales.delete(idCliente)
+    request.onsuccess = function() {
+        console.log("Cliente borrado")
+    }
+
+    request.onerror = function() {
+        console.log("Algo fue mal")
+    }
+}
+
+
+function obtenerDatosClientes(db) {
+    const transaction = db.transaction("clientes", "readonly");
+    const objectStore = transaction.objectStore("clientes");
+
+    const request = objectStore.getAll(); // Obtener todos los registros
+
+    request.onsuccess = (event) => {
+        console.log("Datos de clientes:", event.target.result);
+    };
+}
+
