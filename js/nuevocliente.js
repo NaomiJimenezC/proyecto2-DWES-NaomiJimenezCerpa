@@ -9,6 +9,7 @@ const empresa = document.querySelector("#empresa")
 const botonSubmit = document.querySelector("#formulario input[type=submit]")
 const formulario = document.querySelector("#formulario")
 
+const contenidoTabla = document.querySelector("#listado-clientes")
 //listeners
 
 const datosCliente ={
@@ -18,16 +19,55 @@ const datosCliente ={
     empresa: "",
     id: 0
 }
+if (!contenidoTabla){
+    nombreCliente.addEventListener("blur", validar)
+    correCliente.addEventListener("blur",validar)
+    telefono.addEventListener("blur",validar)
+    empresa.addEventListener("blur",validar)
+    formulario.addEventListener("submit", enviarDatosClientes)
+}
 
-nombreCliente.addEventListener("blur", validar)
-correCliente.addEventListener("blur",validar)
-telefono.addEventListener("blur",validar)
-empresa.addEventListener("blur",validar)
-formulario.addEventListener("submit", enviarDatosClientes)
 document.addEventListener('DOMContentLoaded',inicializarDB)
 
 //funciones
 
+function limpiarHTML (seleccion){
+    while (seleccion.firstChild) {
+        seleccion.removeChild(seleccion.firstChild)
+    }
+}
+
+function pintarClientes(infoClientes){
+    if(infoClientes){
+        limpiarHTML(infoClientes)
+        infoClientes.forEach(cliente => {
+            const clientRow = document.createElement("tr")
+            clientRow.classList.add("px-6", "py-3", "border-b" ,"border-gray-200")
+
+            const nombreCliente = document.createElement("td")
+            nombreCliente.innerText = cliente.nombre
+
+            const telefonoCliente = document.createElement("td")
+            telefonoCliente.innerText = cliente.telefono
+
+            const empresaCliente = document.createElement("td")
+            empresaCliente.innerText = cliente.empresa
+
+            const accion = document.createElement("td")
+            const eliminar = document.createElement("span");
+            eliminar.innerText = "X";
+            eliminar.classList.add("bg-red-500", "text-white")
+            accion.appendChild(eliminar)
+
+            clientRow.appendChild(nombreCliente)
+            clientRow.appendChild(telefonoCliente)
+            clientRow.appendChild(empresaCliente)
+            clientRow.appendChild(accion)
+
+            contenidoTabla.appendChild(clientRow)
+        })
+    }
+}
 
 function enviarDatosClientes(ev){
     guardarDatosCliente()
@@ -124,6 +164,10 @@ function inicializarDB(){
     }
     request.onsuccess = (ev)=>{
         db = ev.target.result;
+        if (contenidoTabla){
+            obtenerDatosClientes(db)
+        }
+
     }
 }
 
@@ -132,6 +176,9 @@ function actualizarCliente(datosNuevos){
     const clientesActuales = transaccion.objectStore("clientes")
     const request = clientesActuales.put(datosNuevos)
 
+    request.onerror = function (){
+        mostrarError(request.onerror.name,formulario)
+    }
 
 }
 
@@ -173,12 +220,12 @@ function borrarCliente(idCliente){
 
 function obtenerDatosClientes(db) {
     const transaction = db.transaction("clientes", "readonly");
-    const objectStore = transaction.objectStore("clientes");
+    const datosClientes = transaction.objectStore("clientes");
 
-    const request = objectStore.getAll(); // Obtener todos los registros
+    const request = datosClientes.getAll(); // Obtener todos los registros
 
     request.onsuccess = (event) => {
-        console.log("Datos de clientes:", event.target.result);
+        pintarClientes(event.target.result);
     };
 }
 
