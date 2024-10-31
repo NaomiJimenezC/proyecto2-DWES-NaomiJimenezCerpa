@@ -54,9 +54,13 @@ function pintarClientes(infoClientes){
             empresaCliente.innerText = cliente.empresa
 
             const accion = document.createElement("td")
-            const eliminar = document.createElement("span");
+            const eliminar = document.createElement("button");
             eliminar.innerText = "X";
-            eliminar.classList.add("bg-red-500", "text-white")
+            eliminar.classList.add("bg-red-500", "text-white","px-2", "py-1","cursor-pointer")
+            eliminar.onclick = () => {
+                borrarCliente(cliente.email,clientRow)
+            }
+
             accion.appendChild(eliminar)
 
             clientRow.appendChild(nombreCliente)
@@ -204,12 +208,13 @@ function guardarDatosCliente(){
     };
 }
 
-function borrarCliente(idCliente){
+function borrarCliente(idCliente,clientRow){
     const transaccion = db.transaction("clientes","readwrite")
     const clienteActuales = transaccion.objectStore("clientes")
     const request = clienteActuales.delete(idCliente)
     request.onsuccess = function() {
         console.log("Cliente borrado")
+        clientRow.remove();
     }
 
     request.onerror = function() {
