@@ -189,7 +189,6 @@ function actualizarCliente(datosNuevos){
 
 function guardarDatosCliente(){
     const transaccion = db.transaction("clientes","readwrite")
-    // db.createObjectStore("clientes", {keyPath: "email"});
     const clientesActuales = transaccion.objectStore("clientes")
     const request = clientesActuales.add(datosCliente)
 
@@ -227,6 +226,7 @@ function obtenerDatosClientes(db) {
     const transaction = db.transaction("clientes", "readonly");
     const datosClientes = transaction.objectStore("clientes");
 
+    const prueba = datosClientes.get
     const request = datosClientes.getAll(); // Obtener todos los registros
 
     request.onsuccess = (event) => {

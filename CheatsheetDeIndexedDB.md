@@ -24,15 +24,97 @@ subas el número de versión para tener un mejor control de los cambios que se h
 ## Operaciones básicas
 
 ### Creación
+Para la inserción de datos nuevos en la base indexedDB basta con hacer lo siguiente:
+```javascript
+const transaccion = db.transaction("clientes","readwrite")
+const clientesActuales = transaccion.objectStore("clientes")
+const request = clientesActuales.add(datosCliente)
+```
+Hacemos una transación a la base de datos, indicandole que vas a realizar acciones de lectura y escritura.
+Cuando hemos seleccionado la objectStore con la que vamos a seleccionar realizamos la adición con el método add
+Como el resto de operaciones CRUD que veremos, el objeto request nos permitirá gestionar situaciones tanto como si sucede
+un error como si todo funciona correctamente
+
+```javascript
+request.onerror= function () {
+    // gestionar el error
+}
+
+request.onsuccess= function (){
+    //gestionas el success
+}
+```
 
 ### Lectura
 
+Para la lectura de datos de la base de datos basta hacer lo siguiente:
+```javascript
+const transaccion = db.transaction("clientes","readonly")
+const clientesActuales = transaccion.objectStore("clientes")
+
+const request = clientesActuales.getAll() //si quieres todo
+const unCliente = clientesActuales.get(idCliente)// si quieres un elemento
+
+request.onsuccess= (ev)=>{
+    ev.target.result.forEach((datoCliente) =>
+        console.log(datoCliente)
+    )
+}
+```
+
 ### Actualización
 
+La actualización es bastante similar a la Creación, solo varía el add por el put. Aquí un ejemplo:
+
+```javascript
+   const transaccion = db.transaction("clientes","readwrite")
+    const clientesActuales = transaccion.objectStore("clientes")
+    const request = clientesActuales.put(datosNuevos)
+
+    request.onerror = function (){
+        mostrarError(request.onerror.name,formulario)
+    }
+
+```
+
 ### Eliminación
+Para la eliminación de elementos de la base de datos o de la objectStore debemos hacer lo siguiente:
+```javascript
+//Para borrar un elemento de una objectStore
+ const transaccion = db.transaction("clientes","readwrite")
+    const clienteActuales = transaccion.objectStore("clientes")
+    const request = clienteActuales.delete(idCliente)
+    request.onsuccess = function() {
+        console.log("Cliente borrado")
+        clientRow.remove();
+    }
 
-## Operaciones complejas
+    request.onerror = function() {
+        console.log("Algo fue mal")
+    }
+```
+Para eliminar una objectStore se puede realizar lo siguiente:
+```javascript
+const request = indexedDB.open("miBaseDeDatos", nuevaVersion); // nuevaVersion debe ser mayor que la versión actual
 
+request.onupgradeneeded = (event) => {
+    const db = event.target.result;
+    
+    // Verifica si el objectStore existe antes de intentar eliminarlo
+    if (db.objectStoreNames.contains("nombreDelObjectStore")) {
+        db.deleteObjectStore("nombreDelObjectStore"); // Eliminar el objectStore
+        console.log("El objectStore fue eliminado exitosamente.");
+    } else {
+        console.log("El objectStore no existe.");
+    }
+};
+```
+
+Para eliminar la base de datos directamente basta con esto:
+
+```javascript
+const request = indexedDB.deleteDatabase("miBaseDeDatos");
+```
 ## Bibliografía
 https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
 https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
